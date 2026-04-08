@@ -1,24 +1,13 @@
-# 11b Sunnies Vercel Upload Folder
+# 11b Sunnies Vercel Upload Folder — Homepage Live Try-On
 
-This is a ready-to-upload Vite + React project for your 11b Sunnies branded try-on prototype.
+This version includes the homepage live try-on block:
+- homepage face upload
+- instant overlay in the hero
+- full try-on lower on the page
+- branded storefront flow
 
-## Quick start
-1. Upload this folder to GitHub.
-2. Import the repo into Vercel.
-3. Click Deploy.
+## To update GitHub
+Replace the files in your repo with the files from this folder, then commit changes.
 
-## Local preview
-```bash
-npm install
-npm run dev
-```
-
-## Build
-```bash
-npm run build
-```
-
-## Notes
-- This is a polished prototype.
-- The smart fit is simulated, not true AI eye detection yet.
-- Replace the sample frame names, prices, and images with your real 11b products next.
+## To deploy
+Once GitHub updates, Vercel automatically redeploys connected repos.
