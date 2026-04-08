@@ -154,7 +154,7 @@ function Range({ label, value, onChange, min, max, step = 1, icon = null }) {
       </div>
       <input
         type="range"
-        value={value}
+        value={typeof value === "string" ? Number(String(value).replace(/[^0-9.-]/g, "")) : value}
         onChange={(e) => onChange(Number(e.target.value))}
         min={min}
         max={max}
@@ -192,7 +192,7 @@ function NavBar({ cartCount, onNavigate }) {
   );
 }
 
-function Hero({ onNavigate }) {
+function Hero({ onNavigate, heroFaceUrl, heroFaceName, onHeroFaceUpload, heroFrame }) {
   return (
     <section className="relative overflow-hidden border-b border-white/10">
       <div className={`absolute inset-0 bg-gradient-to-br ${brand.dark}`} />
@@ -207,13 +207,15 @@ function Hero({ onNavigate }) {
             Try on frames online, shop your favourites, and find the pair that actually suits your face before you buy.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Btn onClick={() => onNavigate("tryon")}>
-              Try Them On <ArrowRight className="ml-2 h-4 w-4" />
-            </Btn>
+            <label className="inline-flex cursor-pointer items-center justify-center rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-2.5 text-sm font-semibold text-black transition hover:opacity-95">
+              Upload Face Now <Upload className="ml-2 h-4 w-4" />
+              <input type="file" accept="image/*" onChange={onHeroFaceUpload} className="hidden" />
+            </label>
             <Btn onClick={() => onNavigate("shop")} kind="secondary">
               Shop Frames
             </Btn>
           </div>
+          {heroFaceName && <p className="mt-3 text-sm text-zinc-400">Loaded: {heroFaceName}</p>}
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {perks.map((perk) => {
@@ -235,24 +237,47 @@ function Hero({ onNavigate }) {
           <div className="relative rounded-[32px] border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <div className="text-sm text-zinc-400">Featured Look</div>
-                <div className="text-2xl font-bold text-white">Kaiteriteri Float</div>
+                <div className="text-sm text-zinc-400">Live Try-On</div>
+                <div className="text-2xl font-bold text-white">{heroFrame.name}</div>
               </div>
-              <Badge className="bg-amber-300 text-black">Best Seller</Badge>
+              <Badge className="bg-amber-300 text-black">{heroFrame.badge}</Badge>
             </div>
             <div className="flex min-h-[440px] items-center justify-center rounded-[28px] bg-gradient-to-br from-zinc-900 to-black p-6">
               <div className="grid w-full gap-6 md:grid-cols-[1fr_.9fr] md:items-center">
                 <div className="rounded-[28px] bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 p-3">
-                  <div className="flex h-[320px] items-center justify-center rounded-[22px] bg-zinc-200 text-zinc-500">
-                    Face preview area
+                  <div className="relative flex h-[320px] items-center justify-center overflow-hidden rounded-[22px] bg-zinc-200 text-zinc-500">
+                    {!heroFaceUrl ? (
+                      <div className="text-center">
+                        <Upload className="mx-auto mb-3 h-10 w-10 text-zinc-500" />
+                        <div className="text-base">Upload your face</div>
+                        <div className="mt-1 text-sm text-zinc-500">See the frames on you instantly</div>
+                      </div>
+                    ) : (
+                      <>
+                        <img src={heroFaceUrl} alt="Homepage try-on" className="h-full w-full object-contain" />
+                        <img
+                          src={heroFrame.image}
+                          alt={heroFrame.name}
+                          className="pointer-events-none absolute left-1/2 top-[39%] w-[34%] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/5 p-6">
-                  <img src={starterFrames[0].image} alt={starterFrames[0].name} className="mx-auto h-24 w-auto object-contain" />
+                  <img src={heroFrame.image} alt={heroFrame.name} className="mx-auto h-24 w-auto object-contain" />
                   <div className="mt-5 text-center">
-                    <div className="text-lg font-semibold text-white">{starterFrames[0].name}</div>
-                    <div className="mt-1 text-sm text-zinc-400">Skateboard Wood • Polarized • Floats</div>
-                    <div className="mt-4 text-3xl font-black text-white">{starterFrames[0].price}</div>
+                    <div className="text-lg font-semibold text-white">{heroFrame.name}</div>
+                    <div className="mt-1 text-sm text-zinc-400">{heroFrame.material} • Polarized • Floats</div>
+                    <div className="mt-4 text-3xl font-black text-white">{heroFrame.price}</div>
+                  </div>
+                  <div className="mt-5 grid gap-3">
+                    <Btn onClick={() => onNavigate("tryon")} className="w-full justify-center">
+                      Open Full Try-On <ArrowRight className="ml-2 h-4 w-4" />
+                    </Btn>
+                    <Btn onClick={() => onNavigate("shop")} kind="secondary" className="w-full justify-center">
+                      Shop This Frame
+                    </Btn>
                   </div>
                 </div>
               </div>
@@ -609,6 +634,18 @@ export default function App() {
   const [page, setPage] = useState("home");
   const [wishlist, setWishlist] = useState([]);
   const [cart, setCart] = useState([]);
+  const [heroFaceUrl, setHeroFaceUrl] = useState("");
+  const [heroFaceName, setHeroFaceName] = useState("");
+
+  const heroFrame = starterFrames[0];
+
+  const handleHeroFaceUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setHeroFaceUrl(url);
+    setHeroFaceName(file.name);
+  };
 
   const addToCart = (frame) => {
     const numericPrice = Number(String(frame.price).replace(/[^0-9.]/g, "")) || 0;
@@ -637,7 +674,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-stone-950 to-black text-white">
       <NavBar cartCount={cart.reduce((sum, item) => sum + item.qty, 0)} onNavigate={setPage} />
-      <Hero onNavigate={setPage} />
+      <Hero onNavigate={setPage} heroFaceUrl={heroFaceUrl} heroFaceName={heroFaceName} onHeroFaceUpload={handleHeroFaceUpload} heroFrame={heroFrame} />
 
       {page === "home" && (
         <>
